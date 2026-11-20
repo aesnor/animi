@@ -36,7 +36,7 @@ function CellImage({ imageUrl, resolveImage, boardBg }: CellImageProps) {
   if (!src || hasError) {
     return (
       <div className="flex h-full w-full items-center justify-center p-1 text-center">
-        <span className="text-lg leading-tight text-text-muted">Failed to load</span>
+        <span className="text-xl leading-tight text-text-muted">Loading...</span>
       </div>
     );
   }
