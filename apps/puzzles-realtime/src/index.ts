@@ -146,49 +146,73 @@ export interface Env {
   ADMIN_KEY: string;
 }
 
+async function handleAdmin(request: Request, env: Env, url: URL): Promise<Response> {
+  const authHeader = request.headers.get("X-Admin-Key");
+  if (!env.ADMIN_KEY || !authHeader || authHeader !== env.ADMIN_KEY) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  if (request.method !== "POST") {
+    return new Response("Method not allowed", { status: 405 });
+  }
+
+  try {
+    const body: any = await request.json();
+    const roomId = body.roomId || "default";
+    const stub = env.ROOM.get(env.ROOM.idFromName(roomId));
+
+    if (url.pathname === "/api/admin/update-puzzle") {
+      return await stub.fetch(
+        new Request("https://internal/api/admin/update-puzzle", {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+      );
+    }
+
+    if (url.pathname === "/api/admin/set-closed") {
+      if (typeof body.closed !== "boolean") {
+        return new Response("closed must be true or false", { status: 400 });
+      }
+      return await stub.fetch(
+        new Request("https://internal/api/admin/set-closed", {
+          method: "POST",
+          body: JSON.stringify({ closed: body.closed }),
+        }),
+      );
+    }
+
+    return new Response("Not found", { status: 404 });
+  } catch {
+    return new Response("Bad Request", { status: 400 });
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env) {
     const url = new URL(request.url);
+
     if (url.pathname.startsWith("/api/admin/")) {
-      const authHeader = request.headers.get("X-Admin-Key");
-      if (!env.ADMIN_KEY || !authHeader || authHeader !== env.ADMIN_KEY) {
-        return new Response("Unauthorized", { status: 401 });
-      }
-
-      if (request.method !== "POST") {
-        return new Response("Method not allowed", { status: 405 });
-      }
-
-      try {
-        const body: any = await request.json();
-        const roomId = body.roomId || "default";
-        const stub = env.ROOM.get(env.ROOM.idFromName(roomId));
-
-        if (url.pathname === "/api/admin/update-puzzle") {
-          return await stub.fetch(
-            new Request("https://internal/api/admin/update-puzzle", {
-              method: "POST",
-              body: JSON.stringify(body),
-            }),
-          );
-        }
-
-        if (url.pathname === "/api/admin/set-closed") {
-          if (typeof body.closed !== "boolean") {
-            return new Response("closed must be true or false", { status: 400 });
+      const origin = request.headers.get("Origin") ?? "";
+      const isLocal =
+        origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:");
+      const cors: Record<string, string> = isLocal
+        ? {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Headers": "Content-Type, X-Admin-Key",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
           }
-          return await stub.fetch(
-            new Request("https://internal/api/admin/set-closed", {
-              method: "POST",
-              body: JSON.stringify({ closed: body.closed }),
-            }),
-          );
-        }
+        : {};
 
-        return new Response("Not found", { status: 404 });
-      } catch (err) {
-        return new Response("Bad Request", { status: 400 });
+      // the browser's preflight has no key, so answer it before the auth check
+      if (request.method === "OPTIONS") {
+        return new Response(null, { status: 204, headers: cors });
       }
+
+      const res = await handleAdmin(request, env, url);
+      const out = new Response(res.body, res);
+      for (const [k, v] of Object.entries(cors)) out.headers.set(k, v);
+      return out;
     }
 
     const match = url.pathname.match(/^\/ws\/room\/([\w-]+)$/);
