@@ -215,14 +215,14 @@ export function Board({ boardRef, dimensions, style, input, images, cellsState }
                 {index === selectedCellIndex && index !== draggedSourceIndex && (
                   <>
                     <div className="pointer-events-none absolute inset-0 z-20 border-4 border-brand-pink" />
-                    <div className="pointer-events-none absolute top-2 left-1/2 z-30 -translate-x-1/2 rounded bg-brand-pink px-1.5 py-0.5 text-[10px] font-extrabold tracking-wider text-white shadow-md">
+                    <div className="pointer-events-none absolute top-2 left-1/2 z-30 -translate-x-1/2 rounded bg-brand-pink px-2.5 py-1 text-xs font-extrabold tracking-wider text-white shadow-lg shadow-black/50">
                       SELECTED
                     </div>
                   </>
                 )}
 
                 {index === draggedSourceIndex && (
-                  <div className="pointer-events-none absolute top-2 left-1/2 z-30 -translate-x-1/2 rounded bg-moving px-1.5 py-0.5 text-[10px] font-extrabold tracking-wider text-white shadow-md">
+                  <div className="pointer-events-none absolute top-2 left-1/2 z-30 -translate-x-1/2 rounded bg-moving px-2.5 py-1 text-xs font-extrabold tracking-wider text-white shadow-lg shadow-black/50">
                     MOVING
                   </div>
                 )}
