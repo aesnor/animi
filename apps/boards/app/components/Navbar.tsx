@@ -1,22 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import {
-  Download,
-  FileDown,
-  FileUp,
-  HelpCircle,
-  Image,
-  ImageDown,
-  Redo,
-  Settings,
-  Type,
-  Undo,
-  Upload,
-} from "lucide-react";
+import { Download, HelpCircle, Image, Redo, Settings, Type, Undo, Upload } from "lucide-react";
 import type { useBoardStyle } from "@/hooks/useBoardStyle";
 import type { useBoardExport } from "@/hooks/useBoardExport";
 import type { useEditHistory } from "@/hooks/useEditHistory";
 import { HelpModal } from "./HelpModal";
+import { DownloadMenu } from "./DownloadMenu";
 
 interface NavbarProps {
   style: ReturnType<typeof useBoardStyle>;
@@ -27,7 +16,7 @@ interface NavbarProps {
 
 export function Navbar({ style, boardExport, history, onOpenSettings }: NavbarProps) {
   const { boardTitle, setBoardTitle, showNames, setShowNames, showImages, setShowImages } = style;
-  const { exportBoard, importBoard, downloadBoard } = boardExport;
+  const { exportBoard, importBoard, downloadBoard, saveBoardAs, copyBoard } = boardExport;
   const { undo, redo, undoable, redoable } = history;
 
   const importInputRef = useRef<HTMLInputElement>(null);
@@ -67,28 +56,13 @@ export function Navbar({ style, boardExport, history, onOpenSettings }: NavbarPr
           </div>
 
           <div className="flex items-center gap-2 md:hidden">
-            <button
-              onClick={() => importInputRef.current?.click()}
-              className="flex items-center gap-1 rounded-2xl bg-secondary px-2 py-2 text-sm font-medium text-text-muted transition-all hover:bg-secondary-hover active:scale-95"
-            >
-              <FileUp className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => exportBoard()}
-              className="flex items-center gap-1 rounded-2xl bg-secondary px-2 py-2 text-sm font-medium text-text-muted transition-all hover:bg-secondary-hover active:scale-95"
-            >
-              <FileDown className="h-4 w-4" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                downloadBoard();
-                (e.target as HTMLButtonElement).blur();
-              }}
-              className="flex items-center gap-1 rounded-2xl bg-secondary px-2 py-2 text-sm font-medium text-brand-cyan transition-all hover:bg-secondary-hover active:scale-95 active:border-brand-cyan/80"
-            >
-              <ImageDown className="h-4 w-4" />
-            </button>
+            <DownloadMenu
+              onDownload={downloadBoard}
+              onSaveAs={saveBoardAs}
+              onCopy={copyBoard}
+              onExportJson={exportBoard}
+              onImportJson={importBoard}
+            />
           </div>
         </div>
 
@@ -142,42 +116,13 @@ export function Navbar({ style, boardExport, history, onOpenSettings }: NavbarPr
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          <input
-            type="file"
-            accept=".json"
-            className="hidden"
-            ref={importInputRef}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) importBoard(file);
-              e.target.value = "";
-            }}
+          <DownloadMenu
+            onDownload={downloadBoard}
+            onSaveAs={saveBoardAs}
+            onCopy={copyBoard}
+            onExportJson={exportBoard}
+            onImportJson={importBoard}
           />
-          <button
-            onClick={() => importInputRef.current?.click()}
-            className="flex items-center gap-1 rounded-2xl bg-secondary px-2 py-2 text-sm font-medium tracking-wide text-text-muted transition-all hover:bg-secondary-hover active:scale-95 lg:px-4"
-          >
-            <FileUp className="h-4 w-4" />
-            <span className="hidden lg:inline">Import</span>
-          </button>
-          <button
-            onClick={() => exportBoard()}
-            className="flex aspect-square items-center gap-1 rounded-2xl bg-secondary p-2 text-sm font-medium tracking-wide text-text-muted transition-all hover:bg-secondary-hover active:scale-95 lg:aspect-auto lg:px-4"
-          >
-            <FileDown className="h-4 w-4" />
-            <span className="hidden lg:inline">Export</span>
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              downloadBoard();
-              (e.target as HTMLButtonElement).blur();
-            }}
-            className="flex aspect-square items-center gap-1 rounded-2xl bg-secondary p-2 text-sm font-medium text-brand-cyan transition-all hover:bg-secondary-hover active:scale-95 active:border-brand-cyan/80 lg:aspect-auto lg:px-4"
-          >
-            <ImageDown className="h-4 w-4" />
-            <span className="hidden lg:inline">Download</span>
-          </button>
         </div>
       </nav>
 

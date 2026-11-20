@@ -164,8 +164,8 @@ export function useBoardExport(
     }
   }
 
-  async function downloadBoard() {
-    if (!boardRef.current) return;
+  async function renderBoard(mime: "image/jpeg" | "image/png"): Promise<Blob> {
+    if (!boardRef.current) throw new Error("Board not mounted");
 
     const gap = style.gridThickness;
     const outerPad = 8; // matches p-2
@@ -473,19 +473,59 @@ export function useBoardExport(
 
     ctx.restore(); // restores the inner-wrapper clip
 
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.download = "anime-board.jpg";
-        link.href = url;
-        link.click();
-        URL.revokeObjectURL(url);
-      },
-      "image/jpeg",
-      BOARD_CONFIG.export.jpegQuality,
-    );
+    return new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error("toBlob failed"))),
+        mime,
+        BOARD_CONFIG.export.jpegQuality,
+      );
+    });
+  }
+
+  function saveBlobAsFile(blob: Blob, name: string) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.download = name;
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // instant download as JPEG
+  async function downloadBoard() {
+    const blob = await renderBoard("image/jpeg");
+    saveBlobAsFile(blob, BOARD_CONFIG.export.defaultImageName);
+  }
+
+  async function saveBoardAs() {
+    const picker = (window as any).showSaveFilePicker;
+    if (!picker) return downloadBoard();
+
+    let handle;
+    try {
+      handle = await picker({
+        suggestedName: BOARD_CONFIG.export.defaultImageName,
+        types: [
+          { description: "JPEG image", accept: { "image/jpeg": [".jpg", ".jpeg"] } },
+          { description: "PNG image", accept: { "image/png": [".png"] } },
+        ],
+      });
+    } catch (e: any) {
+      // user cancelled
+      if (e?.name === "AbortError") return;
+      throw e;
+    }
+
+    const isPng = handle.name.toLowerCase().endsWith(".png");
+    const blob = await renderBoard(isPng ? "image/png" : "image/jpeg");
+
+    const writable = await handle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+  }
+
+  async function copyBoard() {
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": renderBoard("image/png") })]);
   }
 
   return {
@@ -493,5 +533,7 @@ export function useBoardExport(
     importBoard,
     resetBoard,
     downloadBoard,
+    saveBoardAs,
+    copyBoard,
   };
 }
