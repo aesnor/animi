@@ -8,6 +8,7 @@ import { useAniListSearch } from "@/hooks/useAniListSearch";
 import { useBoardExport } from "@/hooks/useBoardExport";
 import { useBoardPersistence } from "@/hooks/useBoardPersistence";
 import { useEditHistory } from "@/hooks/useEditHistory";
+import { useBlobifyCells } from "./useBlobifyCells";
 
 export function useAnimeBoard() {
   const boardRef = useRef<HTMLDivElement>(null);
@@ -30,6 +31,7 @@ export function useAnimeBoard() {
   const anilist = useAniListSearch();
   const boardExport = useBoardExport(boardRef, dimensions, style, cellsState, images);
 
+  useBlobifyCells(cellsState, images);
   useBoardPersistence(dimensions, style, cellsState, images);
 
   return {

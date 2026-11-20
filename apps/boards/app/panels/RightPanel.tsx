@@ -100,28 +100,6 @@ export function RightPanel({ cellsState, images, input, history }: RightPanelPro
     }
   };
 
-  const blobifyUrl = async (url: string) => {
-    if (!/^https?:\/\//i.test(url)) return;
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_PROXY_URL}/api/proxy?url=${encodeURIComponent(url)}`,
-      );
-      if (!res.ok) return;
-      const blob = await compressImageToBlob(await res.blob());
-      const key = storeImage(blob);
-
-      setCells((prev) =>
-        prev.map((c) =>
-          c?.images?.includes(url)
-            ? { ...c, images: c.images.map((u) => (u === url ? key : u)) }
-            : c,
-        ),
-      );
-    } catch {
-      // leave the raw URL in place
-    }
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -296,7 +274,6 @@ export function RightPanel({ cellsState, images, input, history }: RightPanelPro
               onFocus={() => beginAction()}
               onBlur={() => {
                 endAction();
-                blobifyUrl(currentImageUrl);
               }}
               onChange={(e) => {
                 const val = e.target.value;
