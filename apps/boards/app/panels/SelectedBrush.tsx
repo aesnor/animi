@@ -16,6 +16,7 @@ export function SelectedBrush({ input, images }: SelectedBrushProps) {
 
   if (!activeBrush) return null;
   const currentImgUrl = activeBrush.images?.[activeBrush.activeImageIndex ?? 0] ?? "";
+  const resolvedSrc = currentImgUrl ? resolveImage(currentImgUrl) : null;
 
   return (
     <div
@@ -33,9 +34,9 @@ export function SelectedBrush({ input, images }: SelectedBrushProps) {
 
       <div className="flex flex-col items-center gap-1.5 rounded-tl-2xl bg-primary p-2 shadow-xl md:gap-2 md:rounded-tl-2xl md:p-2">
         <div className="w-15 overflow-hidden rounded-xl shadow-inner md:w-28">
-          {currentImgUrl ? (
+          {resolvedSrc ? (
             <img
-              src={resolveImage(currentImgUrl) ?? ""}
+              src={resolvedSrc}
               alt={activeBrush.name ?? "Selected"}
               className="aspect-160/220 w-full object-cover"
             />
