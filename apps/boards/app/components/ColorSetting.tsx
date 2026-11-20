@@ -11,7 +11,7 @@ export function ColorSetting({ value, onChange, title, label, className = "" }: 
 
   return (
     <div
-      className={`flex items-center rounded-full bg-secondary py-0 pr-0 pl-3 transition select-none hover:bg-secondary/80 ${
+      className={`flex items-center rounded bg-secondary py-0 pr-0 pl-3 transition select-none ${
         hasLabel ? "justify-between" : "justify-center"
       } ${className}`}
       title={title}
@@ -19,7 +19,7 @@ export function ColorSetting({ value, onChange, title, label, className = "" }: 
       {hasLabel && <span className="text-xs text-text-muted md:text-sm">{label}</span>}
 
       <div
-        className="relative h-6 w-20 cursor-pointer overflow-hidden rounded-full shadow-inner transition-all hover:opacity-90"
+        className="relative h-6 w-20 cursor-pointer overflow-hidden rounded rounded-l-full shadow-inner transition-all hover:opacity-90"
         style={{ background: value }}
       >
         <input

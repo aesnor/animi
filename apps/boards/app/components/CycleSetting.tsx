@@ -25,7 +25,7 @@ export function CycleSetting<T extends string | number = string>({
 
   return (
     <div
-      className={`flex cursor-pointer items-center select-none ${hasLabel ? "justify-between" : "justify-center"} rounded bg-tertiary px-3 py-1 transition hover:bg-tertiary/80 active:scale-98 ${className}`}
+      className={`flex cursor-pointer items-center select-none ${hasLabel ? "justify-between" : "justify-center"} rounded bg-secondary px-3 py-1 transition hover:bg-secondary-hover active:scale-98 ${className}`}
       onClick={handleCycle}
     >
       <span className="text-xs text-text-muted md:text-sm">{label}</span>

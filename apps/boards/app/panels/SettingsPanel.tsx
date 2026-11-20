@@ -139,6 +139,49 @@ export function SettingsPanel({
         </div>
 
         <div className="custom-scrollbar flex flex-col gap-2 overflow-y-auto p-4">
+          <div className="flex w-full items-center justify-center">
+            {!confirm ? (
+              <div className="flex w-full gap-2">
+                <button
+                  onClick={() => setConfirm("shuffle")}
+                  className="flex flex-1 cursor-pointer items-center justify-center rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-brand-cyan transition-all hover:bg-secondary-hover active:scale-95"
+                >
+                  Shuffle Cells
+                </button>
+                <button
+                  onClick={() => setConfirm("reset")}
+                  className="flex flex-1 cursor-pointer items-center justify-center rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-red-400 transition-all hover:bg-secondary-hover active:scale-95"
+                >
+                  Reset
+                </button>
+              </div>
+            ) : (
+              <div className="flex w-full flex-col items-center gap-1.5">
+                <span className="w-full truncate text-center text-xs tracking-tight text-text-muted">
+                  {confirm === "reset" ? "Reset board?" : "Shuffle cells?"}
+                </span>
+                <div className="flex w-full gap-1.5">
+                  <button
+                    onClick={() => setConfirm("")}
+                    className="flex flex-1 cursor-pointer items-center justify-center rounded-full bg-secondary px-2 py-1.5 text-xs font-medium text-brand-cyan transition-all hover:bg-secondary-hover active:scale-95"
+                  >
+                    No
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm === "reset") resetBoard();
+                      if (confirm === "shuffle") shuffleBoard();
+                      setConfirm("");
+                    }}
+                    className="flex flex-1 cursor-pointer items-center justify-center rounded-full bg-secondary px-2 py-1.5 text-xs font-medium text-red-400 transition-all hover:bg-secondary-hover hover:text-red-300 active:scale-95"
+                  >
+                    Yes
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="flex w-full min-w-0 flex-row gap-1">
             {/* Rows x Cols */}
             <div className="flex min-w-0 flex-2 items-center rounded-xl bg-tertiary">
@@ -383,48 +426,6 @@ export function SettingsPanel({
             <ColorSetting label="Title Text" value={titleColor} onChange={setTitleColor} />
             <ColorSetting label="Grid Lines" value={boardLines} onChange={setBoardLines} />
             <ColorSetting label="Marker Color" value={markerColor} onChange={setMarkerColor} />
-            <div className="mt-2 flex w-full items-center justify-center">
-              {!confirm ? (
-                <div className="flex w-full gap-2">
-                  <button
-                    onClick={() => setConfirm("shuffle")}
-                    className="flex flex-1 cursor-pointer items-center justify-center rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-brand-cyan transition-all hover:bg-secondary-hover active:scale-95"
-                  >
-                    Shuffle Cells
-                  </button>
-                  <button
-                    onClick={() => setConfirm("reset")}
-                    className="flex flex-1 cursor-pointer items-center justify-center rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-red-400 transition-all hover:bg-secondary-hover active:scale-95"
-                  >
-                    Reset
-                  </button>
-                </div>
-              ) : (
-                <div className="flex w-full flex-col items-center gap-1.5">
-                  <span className="w-full truncate text-center text-xs tracking-tight text-text-muted">
-                    {confirm === "reset" ? "Reset board?" : "Shuffle cells?"}
-                  </span>
-                  <div className="flex w-full gap-1.5">
-                    <button
-                      onClick={() => setConfirm("")}
-                      className="flex flex-1 cursor-pointer items-center justify-center rounded-full bg-secondary px-2 py-1.5 text-xs font-medium text-brand-cyan transition-all hover:bg-secondary-hover active:scale-95"
-                    >
-                      No
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (confirm === "reset") resetBoard();
-                        if (confirm === "shuffle") shuffleBoard();
-                        setConfirm("");
-                      }}
-                      className="flex flex-1 cursor-pointer items-center justify-center rounded-full bg-secondary px-2 py-1.5 text-xs font-medium text-red-400 transition-all hover:bg-secondary-hover hover:text-red-300 active:scale-95"
-                    >
-                      Yes
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>

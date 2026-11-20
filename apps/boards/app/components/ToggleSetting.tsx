@@ -15,7 +15,7 @@ export function ToggleSetting({
 }: ToggleSettingProps) {
   return (
     <label
-      className={`flex min-w-0 cursor-pointer items-center justify-between gap-2 rounded bg-tertiary px-3 py-1 transition select-none hover:bg-tertiary/80 active:scale-95 ${className}`}
+      className={`flex min-w-0 cursor-pointer items-center justify-between gap-2 rounded bg-secondary px-3 py-1 transition select-none hover:bg-secondary-hover active:scale-95 ${className}`}
     >
       <span className="text-xs text-text-muted md:text-sm">{label}</span>
       <input
