@@ -10,6 +10,37 @@ export function useBoardImages() {
   const objectUrlCache = useRef(new Map<string, string>());
   const [, setTick] = useState(0);
 
+  const inflight = useRef(new Map<string, Promise<string>>());
+  const urlToKey = useRef(new Map<string, string>());
+
+  const cacheRemoteImage = async (url: string): Promise<string> => {
+    if (!url || url.startsWith("img:") || url.startsWith("data:") || url.startsWith("blob:")) {
+      return url;
+    }
+    const existing = urlToKey.current.get(url);
+    if (existing && imageStore.current.has(existing)) return existing;
+
+    const pending = inflight.current.get(url);
+    if (pending) return pending;
+
+    const p = (async () => {
+      const proxied = `${process.env.NEXT_PUBLIC_PROXY_URL}/api/proxy?url=${encodeURIComponent(url)}`;
+      const res = await fetch(proxied);
+      if (!res.ok) throw new Error(`Proxy fetch failed: ${res.status}`);
+      const blob = await res.blob();
+      const key = storeImage(blob);
+      urlToKey.current.set(url, key);
+      return key;
+    })();
+
+    inflight.current.set(url, p);
+    try {
+      return await p;
+    } finally {
+      inflight.current.delete(url);
+    }
+  };
+
   const resolveImage = (imageKey: string): string | null => {
     if (!imageKey?.startsWith("img:")) return imageKey;
 
@@ -42,5 +73,6 @@ export function useBoardImages() {
     setImage,
     clearImages,
     getImageEntries,
+    cacheRemoteImage,
   };
 }

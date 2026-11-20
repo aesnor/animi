@@ -107,6 +107,7 @@ export default function Home() {
           anilist={board.anilist}
           boardExport={board.boardExport}
           cellsState={board.cellsState}
+          images={board.images}
         />
 
         <Navbar

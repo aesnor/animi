@@ -62,18 +62,25 @@ export function useBoardPersistence(
     const saveAsync = async () => {
       const saveImages: Record<string, string> = {};
 
+      const usedKeys = new Set(
+        cellsState.cells.flatMap((c) => c?.images ?? []).filter((k) => k?.startsWith("img:")),
+      );
+
       await Promise.all(
-        images.getImageEntries().map(
-          ([key, blob]) =>
-            new Promise<void>((resolve) => {
-              const reader = new FileReader();
-              reader.readAsDataURL(blob);
-              reader.onloadend = () => {
-                saveImages[key] = reader.result as string;
-                resolve();
-              };
-            }),
-        ),
+        images
+          .getImageEntries()
+          .filter(([key]) => usedKeys.has(key))
+          .map(
+            ([key, blob]) =>
+              new Promise<void>((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = () => {
+                  saveImages[key] = reader.result as string;
+                  resolve();
+                };
+              }),
+          ),
       );
 
       await set(STORAGE_KEY, {

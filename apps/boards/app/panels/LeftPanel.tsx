@@ -27,6 +27,7 @@ import type { useBoardInput } from "@/hooks/useBoardInput";
 import type { useAniListSearch } from "@/hooks/useAniListSearch";
 import type { useBoardExport } from "@/hooks/useBoardExport";
 import type { useBoardCells } from "@/hooks/useBoardCells";
+import type { useBoardImages } from "@/hooks/useBoardImages";
 
 interface LeftPanelProps {
   dimensions: ReturnType<typeof useBoardDimensions>;
@@ -35,6 +36,7 @@ interface LeftPanelProps {
   anilist: ReturnType<typeof useAniListSearch>;
   boardExport: ReturnType<typeof useBoardExport>;
   cellsState: ReturnType<typeof useBoardCells>;
+  images: ReturnType<typeof useBoardImages>;
 }
 
 export function LeftPanel({
@@ -44,6 +46,7 @@ export function LeftPanel({
   anilist,
   boardExport,
   cellsState,
+  images,
 }: LeftPanelProps) {
   const { rows, setRows, cols, setCols, cellWidth, setCellWidth, cellHeight, setCellHeight } =
     dimensions;
@@ -160,17 +163,30 @@ export function LeftPanel({
                 return (
                   <button
                     key={i}
-                    onClick={() => {
-                      if (activeImgUrl) {
-                        const img = new Image();
-                        img.crossOrigin = "anonymous";
-                        img.src = activeImgUrl;
-                      }
+                    onClick={async () => {
                       setActiveBrush(char);
+
+                      const url = char.images[char.activeImageIndex ?? 0];
+                      if (!url) return;
+
+                      try {
+                        const key = await images.cacheRemoteImage(url);
+                        setActiveBrush((prev) =>
+                          prev && prev.images[prev.activeImageIndex ?? 0] === url
+                            ? { ...prev, images: prev.images.map((u) => (u === url ? key : u)) }
+                            : prev,
+                        );
+                      } catch {}
                     }}
-                    onDoubleClick={(e) => {
+                    onDoubleClick={async (e) => {
                       e.preventDefault();
-                      fillEarliest(char);
+                      const url = char.images[char.activeImageIndex ?? 0];
+                      try {
+                        const key = url ? await images.cacheRemoteImage(url) : url;
+                        fillEarliest({ ...char, images: key ? [key] : [] });
+                      } catch {
+                        fillEarliest(char);
+                      }
                     }}
                     className="group flex w-full flex-col items-center gap-1 p-1 transition-transform active:scale-95"
                   >
