@@ -19,7 +19,7 @@ interface RightPanelProps {
 }
 
 export function RightPanel({ cellsState, images, input, history }: RightPanelProps) {
-  const { cells, updateCell } = cellsState;
+  const { cells, updateCell, setCells } = cellsState;
   const { storeImage, resolveImage } = images;
   const { selectedCellIndex, setSelectedCellIndex } = input;
   const { beginAction, endAction } = history;
@@ -44,7 +44,7 @@ export function RightPanel({ cellsState, images, input, history }: RightPanelPro
   const activeIndex = activeCell?.activeImageIndex ?? 0;
   const currentImageUrl = activeImages[activeIndex] ?? "";
 
-  const compressImageToBlob = (file: File, maxWidth = 800, quality = 0.7): Promise<Blob> => {
+  const compressImageToBlob = (file: Blob, maxWidth = 800, quality = 0.7): Promise<Blob> => {
     return new Promise((resolve, reject) => {
       const img = new window.Image();
       const url = URL.createObjectURL(file);
@@ -97,6 +97,28 @@ export function RightPanel({ cellsState, images, input, history }: RightPanelPro
       endAction(next);
     } catch (err) {
       endAction();
+    }
+  };
+
+  const blobifyUrl = async (url: string) => {
+    if (!/^https?:\/\//i.test(url)) return;
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_PROXY_URL}/api/proxy?url=${encodeURIComponent(url)}`,
+      );
+      if (!res.ok) return;
+      const blob = await compressImageToBlob(await res.blob());
+      const key = storeImage(blob);
+
+      setCells((prev) =>
+        prev.map((c) =>
+          c?.images?.includes(url)
+            ? { ...c, images: c.images.map((u) => (u === url ? key : u)) }
+            : c,
+        ),
+      );
+    } catch {
+      // leave the raw URL in place
     }
   };
 
@@ -266,9 +288,16 @@ export function RightPanel({ cellsState, images, input, history }: RightPanelPro
             <input
               type="text"
               placeholder="Paste Image URL..."
-              value={currentImageUrl.startsWith("data:") ? "[Local Image File]" : currentImageUrl}
+              value={
+                currentImageUrl.startsWith("data:") || currentImageUrl.startsWith("img:")
+                  ? "[Image Data]"
+                  : currentImageUrl
+              }
               onFocus={() => beginAction()}
-              onBlur={() => endAction()}
+              onBlur={() => {
+                endAction();
+                blobifyUrl(currentImageUrl);
+              }}
               onChange={(e) => {
                 const val = e.target.value;
                 const newImages = [...activeImages];
