@@ -10,8 +10,8 @@ export function ColorSetting({ value, onChange, title, label, className = "" }: 
   const hasLabel = Boolean(label && label.trim() !== "");
 
   return (
-    <div
-      className={`flex items-center rounded bg-secondary py-0 pr-0 pl-3 transition select-none ${
+    <label
+      className={`flex cursor-pointer items-center rounded bg-secondary px-3 py-1 transition select-none hover:bg-secondary-hover ${
         hasLabel ? "justify-between" : "justify-center"
       } ${className}`}
       title={title}
@@ -19,7 +19,7 @@ export function ColorSetting({ value, onChange, title, label, className = "" }: 
       {hasLabel && <span className="text-xs text-text-muted md:text-sm">{label}</span>}
 
       <div
-        className="relative h-6 w-20 cursor-pointer overflow-hidden rounded rounded-l-full shadow-inner transition-all hover:opacity-90"
+        className="relative h-5 w-14 overflow-hidden rounded-md border border-white/20 shadow-inner"
         style={{ background: value }}
       >
         <input
@@ -29,6 +29,6 @@ export function ColorSetting({ value, onChange, title, label, className = "" }: 
           className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
         />
       </div>
-    </div>
+    </label>
   );
 }
