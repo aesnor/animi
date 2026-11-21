@@ -6,11 +6,27 @@ const field =
 
 type Status = { kind: "ok" | "err"; text: string } | null;
 
+function parseAspectInput(raw: string): number | undefined {
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+
+  const ratioMatch = trimmed.match(/^(\d+(?:\.\d+)?)\s*[:/]\s*(\d+(?:\.\d+)?)$/);
+  if (ratioMatch) {
+    const num = parseFloat(ratioMatch[1]!);
+    const den = parseFloat(ratioMatch[2]!);
+    return num > 0 && den > 0 ? num / den : undefined;
+  }
+
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
 export default function AdminPage() {
   const [adminKey, setAdminKey] = useState("");
   const [title, setTitle] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [pieces, setPieces] = useState(500);
+  const [aspectInput, setAspectInput] = useState("");
   const [status, setStatus] = useState<Status>(null);
   const [busy, setBusy] = useState(false);
 
@@ -42,6 +58,24 @@ export default function AdminPage() {
     }
   };
 
+  const handleUpdatePuzzle = () => {
+    const parsedAspect = parseAspectInput(aspectInput);
+    if (aspectInput.trim() !== "" && parsedAspect === undefined) {
+      setStatus({
+        kind: "err",
+        text: "Invalid aspect ratio. Use a positive number (e.g. 1.77) or ratio (e.g. 16/9 or 4:3).",
+      });
+      return;
+    }
+
+    send("update-puzzle", {
+      title,
+      imageUrl,
+      pieces,
+      ...(parsedAspect !== undefined ? { aspect: parsedAspect } : {}),
+    });
+  };
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-primary p-6 text-text-white sm:p-10">
       <div className="flex w-full max-w-2xl flex-col gap-6 rounded-2xl border-2 border-border-default bg-primary/80 p-6 sm:p-8">
@@ -60,7 +94,7 @@ export default function AdminPage() {
           />
         </label>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <label className="flex flex-col gap-1.5 text-sm sm:col-span-2">
             <span className="font-medium text-text-white/85">Title</span>
             <input
@@ -81,6 +115,18 @@ export default function AdminPage() {
               onChange={(e) => setPieces(parseInt(e.target.value, 10) || 0)}
             />
           </label>
+
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span className="font-medium text-text-white/85">Aspect (optional)</span>
+            <input
+              className={field}
+              type="text"
+              inputMode="decimal"
+              placeholder="Auto"
+              value={aspectInput}
+              onChange={(e) => setAspectInput(e.target.value)}
+            />
+          </label>
         </div>
 
         <label className="flex flex-col gap-1.5 text-sm">
@@ -96,7 +142,7 @@ export default function AdminPage() {
         <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center">
           <button
             disabled={busy || !adminKey || !imageUrl}
-            onClick={() => send("update-puzzle", { title, imageUrl, pieces })}
+            onClick={handleUpdatePuzzle}
             className="flex-1 rounded-full bg-secondary px-5 py-2.5 text-sm font-medium whitespace-nowrap text-brand-pink transition hover:bg-secondary-hover disabled:opacity-50"
           >
             Update puzzle

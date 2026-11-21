@@ -48,13 +48,14 @@ export function PuzzleLoader({
     );
   }
 
-  const { imageUrl, rows, cols } = snapshot.puzzle;
+  const { imageUrl, rows, cols, aspect } = snapshot.puzzle;
+  const eAspect = aspect && aspect > 0 ? aspect : size.w / size.h;
 
   const maxW = 1400;
   const maxH = 900;
-  const fit = Math.min(maxW / size.w, maxH / size.h);
-  const boardWidth = Math.round(size.w * fit);
-  const boardHeight = Math.round(size.h * fit);
+  const scale = Math.min(maxW / eAspect, maxH);
+  const boardWidth = Math.round(eAspect * scale);
+  const boardHeight = Math.round(scale);
 
   return (
     <PuzzleBoard

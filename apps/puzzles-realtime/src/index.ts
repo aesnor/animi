@@ -638,14 +638,16 @@ export class Room extends DurableObject<Env> {
 
     const targetPieces = input.pieces;
 
-    const fallbackAspect =
+    const explicitAspect =
       typeof input.aspect === "number" && Number.isFinite(input.aspect) && input.aspect > 0
         ? input.aspect
         : undefined;
 
-    let aspect: number | undefined;
+    let aspect: number;
 
-    try {
+    if (explicitAspect !== undefined) {
+      aspect = explicitAspect;
+    } else {
       const res = await fetch(imageUrl, {
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -661,14 +663,6 @@ export class Room extends DurableObject<Env> {
         throw new Error("Could not parse image dimensions from image bytes.");
       }
       aspect = dims.width / dims.height;
-    } catch (err: any) {
-      console.error("Failed to detect image dimensions:", err);
-      if (fallbackAspect === undefined) {
-        throw new Error(
-          `Failed to determine puzzle aspect ratio: ${err.message}. Please provide 'aspect' manually in your request.`,
-        );
-      }
-      aspect = fallbackAspect;
     }
 
     const rows = Math.max(2, Math.round(Math.sqrt(targetPieces / aspect)));
